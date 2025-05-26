@@ -3,6 +3,8 @@ package com.itq.notification.producer.controller;
 import com.itq.notification.util.model.NotificationMessage;
 import com.itq.notification.producer.service.NotificationProducer;
 import com.itq.notification.util.enums.*;
+import com.itq.notification.util.dto.ReportRequest;
+import com.itq.notification.util.dto.SystemNotificationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
