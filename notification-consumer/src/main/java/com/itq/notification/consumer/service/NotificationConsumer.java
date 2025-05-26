@@ -1,7 +1,7 @@
 package com.itq.notification.consumer.service;
 
-import com.itq.notification.consumer.service.WebSocketNotificationService;
-import com.itq.notification.model.NotificationMessage;
+import com.itq.notification.util.model.NotificationMessage; // Changed from model to util.model
+import com.itq.notification.websocket.service.WebSocketNotificationService; // Fixed import
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.Message;
-import javax.jms.TextMessage;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 @Service
 public class NotificationConsumer {

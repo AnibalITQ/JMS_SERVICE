@@ -1,10 +1,14 @@
 package com.itq.notification.consumer.client;
 
-import com.itq.notification.model.NotificationMessage;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Value; // Changed from model to util.model
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import com.itq.notification.util.model.NotificationMessage;
 
 @Component
 public class WebSocketClient {
