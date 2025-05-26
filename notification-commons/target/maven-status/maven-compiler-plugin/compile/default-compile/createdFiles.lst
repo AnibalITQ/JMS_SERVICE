@@ -1,0 +1,7 @@
+com\itq\notification\util\enums\ReportCategory.class
+com\itq\notification\util\config\JMSConfig.class
+com\itq\notification\util\dto\ReportRequest.class
+com\itq\notification\util\model\NotificationMessage.class
+com\itq\notification\util\dto\SystemNotificationRequest.class
+com\itq\notification\util\enums\MessageType.class
+com\itq\notification\util\enums\UserRole.class
