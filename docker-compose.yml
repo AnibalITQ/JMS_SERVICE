@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  activemq:
+    image: rmohr/activemq:5.17.6
+    container_name: activemq
+    ports:
+      - "61616:61616"   # JMS Broker
+      - "8161:8161"     # Admin Console
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+    volumes:
+      - ./activemq/conf:/opt/activemq/conf
+      - ./activemq/data:/opt/activemq/data
+
+  notification-producer:
+    build: ./notification-producer
+    container_name: notification-producer
+    ports:
+      - "8081:8081"
+    environment:
+      - JMS_BROKER_URL=tcp://activemq:61616
+      - JMS_USERNAME=admin
+      - JMS_PASSWORD=admin
+    depends_on:
+      - activemq
+
+  notification-consumer:
+    build: ./notification-consumer
+    container_name: notification-consumer
+    ports:
+      - "8082:8082"
+    environment:
+      - JMS_BROKER_URL=tcp://activemq:61616
+      - JMS_USERNAME=admin
+      - JMS_PASSWORD=admin
+      - WEBSOCKET_SERVICE_URL=http://notification-websocket:8083
+    depends_on:
+      - activemq
+      - notification-websocket
+
+  notification-websocket:
+    build: ./notification-websocket
+    container_name: notification-websocket
+    ports:
+      - "8083:8083"
+    environment:
+      - JMS_BROKER_URL=tcp://activemq:61616
+      - JMS_USERNAME=admin
+      - JMS_PASSWORD=admin
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4200
+    depends_on:
+      - activemq
