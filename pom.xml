@@ -14,9 +14,9 @@
 
   <modules>
     <module>notification-commons</module>
+    <module>notification-websocket</module>
     <module>notification-producer</module>
     <module>notification-consumer</module>
-    <module>notification-websocket</module>
   </modules>
 
   <properties>
