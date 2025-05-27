@@ -16,21 +16,11 @@
 
   <dependencies>
 
-    <!-- Use only Jakarta JMS API -->
     <dependency>
       <groupId>jakarta.jms</groupId>
       <artifactId>jakarta.jms-api</artifactId>
-      <version>3.0.0</version>
       <scope>compile</scope>
     </dependency>
-
-    <!-- ActiveMQ client -->
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-client</artifactId>
-      <version>5.17.4</version>
-    </dependency>
-
     <dependency>
       <groupId>com.itq.notification</groupId>
       <artifactId>notification-commons</artifactId>
