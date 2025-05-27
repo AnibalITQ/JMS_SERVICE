@@ -1,8 +1,9 @@
 package com.itq.notification.websocket.service;
 
+import org.springframework.stereotype.Service;
+
 import com.itq.notification.util.model.NotificationMessage;
 import com.itq.notification.websocket.handler.NotificationWebSocketHandler;
-import org.springframework.stereotype.Service;
 
 @Service
 public class WebSocketNotificationService {
@@ -13,7 +14,8 @@ public class WebSocketNotificationService {
         this.webSocketHandler = handler;
     }
 
-    public void broadcast(NotificationMessage notification) {
-        webSocketHandler.sendNotification(notification);
+
+    public void sendToUser(String userId, NotificationMessage notification) {
+        webSocketHandler.sendNotificationToUser(userId, notification);
     }
 }

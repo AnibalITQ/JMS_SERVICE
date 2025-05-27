@@ -1,16 +1,22 @@
 package com.itq.notification.producer.controller;
 
-import com.itq.notification.util.model.NotificationMessage;
-import com.itq.notification.producer.service.NotificationProducer;
-import com.itq.notification.util.enums.*;
-import com.itq.notification.util.dto.ReportRequest;
-import com.itq.notification.util.dto.SystemNotificationRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.itq.notification.producer.service.NotificationProducer;
+import com.itq.notification.util.dto.ReportRequest;
+import com.itq.notification.util.dto.SystemNotificationRequest;
+import com.itq.notification.util.enums.MessageType;
+import com.itq.notification.util.enums.ReportCategory;
+import com.itq.notification.util.model.NotificationMessage;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -25,11 +31,11 @@ public class NotificationController {
         try {
             // Crear mensaje para el usuario reportado
             NotificationMessage userMessage = createUserMessage(request);
-            notificationProducer.sendNotification(userMessage);
+            notificationProducer.sendNotification(userMessage, "notification.queue.in");
             
             // Crear mensaje para el guardia
             NotificationMessage guardMessage = createGuardMessage(request);
-            notificationProducer.sendNotification(guardMessage);
+            notificationProducer.sendNotification( guardMessage, "guard.notification");
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -57,7 +63,7 @@ public class NotificationController {
             message.setCategory(ReportCategory.GENERAL);
             message.setPriority(request.getPriority() != null ? request.getPriority() : 1);
             
-            notificationProducer.sendNotification(message);
+            notificationProducer.sendNotification(message, "system.notification");
             
             return ResponseEntity.ok(Map.of("success", true, "messageId", message.getMessageId()));
             

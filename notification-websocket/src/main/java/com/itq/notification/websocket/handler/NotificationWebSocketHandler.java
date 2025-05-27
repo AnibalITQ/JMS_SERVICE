@@ -1,24 +1,40 @@
 package com.itq.notification.websocket.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.itq.notification.model.NotificationMessage;
-import org.springframework.stereotype.Component;
-import org.springframework.web.socket.*;
-
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.util.UriTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.itq.notification.util.model.NotificationMessage;
 
 @Component
 public class NotificationWebSocketHandler implements WebSocketHandler {
 
-    private final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, WebSocketSession> userSessions = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
+
+    @Autowired
+    public NotificationWebSocketHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.objectMapper.registerModule(new JavaTimeModule());
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessions.add(session);
+        // Extrae el userId del path
+        String path = session.getUri().getPath();
+        String userId = new UriTemplate("/ws/notifications/{userId}").match(path).get("userId");
+        userSessions.put(userId, session);
     }
 
     @Override
@@ -28,13 +44,14 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        sessions.remove(session);
+        userSessions.values().remove(session);
         session.close(CloseStatus.SERVER_ERROR);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        sessions.remove(session);
+        // Remueve la sesión del usuario
+        userSessions.values().remove(session);
     }
 
     @Override
@@ -42,23 +59,26 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         return false;
     }
 
-    public void sendNotification(NotificationMessage notification) {
-        String payload;
-        try {
-            payload = objectMapper.writeValueAsString(notification);
-        } catch (IOException e) {
-            throw new RuntimeException("Error serializando notificación", e);
+    public void sendNotificationToUser(String userId, NotificationMessage notification) {
+        // Enviar al usuario individual
+        WebSocketSession session = userSessions.get(userId);
+        if (session != null && session.isOpen()) {
+            try {
+                String payload = objectMapper.writeValueAsString(notification);
+                session.sendMessage(new TextMessage(payload));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
-        synchronized (sessions) {
-            for (WebSocketSession session : sessions) {
-                if (session.isOpen()) {
-                    try {
-                        session.sendMessage(new TextMessage(payload));
-                    } catch (IOException e) {
-                        // Loguear error y continuar con otras sesiones
-                        e.printStackTrace();
-                    }
+        // Enviar también a la sesión universal "guardia" si existe y no es el mismo usuario
+        if (!"guardia".equals(userId)) {
+            WebSocketSession guardSession = userSessions.get("guardia");
+            if (guardSession != null && guardSession.isOpen()) {
+                try {
+                    String payload = objectMapper.writeValueAsString(notification);
+                    guardSession.sendMessage(new TextMessage(payload));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }

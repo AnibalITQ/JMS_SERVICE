@@ -21,11 +21,11 @@ public class NotificationProducer {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void sendNotification(NotificationMessage notification) {
+    public void sendNotification(NotificationMessage notification, String queueName) {
         try {
             String json = objectMapper.writeValueAsString(notification);
             
-            jmsTemplate.send(session -> {
+            jmsTemplate.send(queueName, session -> {
                 TextMessage message = session.createTextMessage(json);
                 message.setStringProperty("messageType", notification.getMessageType().name());
                 return message;
