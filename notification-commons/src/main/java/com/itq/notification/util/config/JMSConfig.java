@@ -1,10 +1,10 @@
 package com.itq.notification.util.config;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Queue;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Queue;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +23,8 @@ public class JMSConfig {
     
     @Bean
     public ConnectionFactory connectionFactory() {
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory();
-        factory.setBrokerURL(brokerUrl);
-        factory.setUserName("admin");
+        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
+        factory.setUser("admin");
         factory.setPassword("admin");
         return factory;
     }
@@ -39,22 +38,22 @@ public class JMSConfig {
         return template;
     }
     
-    @Bean
+    @Bean(name = "notificationQueueIn")
     public Queue notificationQueueIn() {
         return new ActiveMQQueue(NOTIFICATION_QUEUE_IN);
     }
     
-    @Bean
+    @Bean(name = "notificationQueueOut")
     public Queue notificationQueueOut() {
         return new ActiveMQQueue(NOTIFICATION_QUEUE_OUT);
     }
     
-    @Bean
+    @Bean(name = "priorityQueue")
     public Queue priorityQueue() {
         return new ActiveMQQueue(PRIORITY_QUEUE);
     }
     
-    @Bean
+    @Bean(name = "guardQueue")
     public Queue guardQueue() {
         return new ActiveMQQueue(GUARD_QUEUE);
     }
