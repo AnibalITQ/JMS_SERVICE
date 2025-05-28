@@ -14,8 +14,11 @@ public class WebSocketNotificationService {
         this.webSocketHandler = handler;
     }
 
-
     public void sendToUser(String userId, NotificationMessage notification) {
         webSocketHandler.sendNotificationToUser(userId, notification);
+    }
+
+    public boolean isUserActive(String userId) {
+        return webSocketHandler.isUserActive(userId);
     }
 }

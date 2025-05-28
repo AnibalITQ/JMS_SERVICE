@@ -83,4 +83,9 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             }
         }
     }
+
+    public Boolean isUserActive(String userId)
+    {
+        return userSessions.containsKey(userId) && userSessions.get(userId).isOpen();
+    }
 }
