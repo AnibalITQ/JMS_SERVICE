@@ -62,7 +62,7 @@ public class NotificationController {
             message.setContent(request.getMessage());
             message.setCategory(ReportCategory.GENERAL);
             message.setPriority(request.getPriority() != null ? request.getPriority() : 1);
-            
+            //message.setIntProperty("intProperty", request.getAttemptsToSend());
             notificationProducer.sendNotification(message, "system.notification");
             
             return ResponseEntity.ok(Map.of("success", true, "messageId", message.getMessageId()));

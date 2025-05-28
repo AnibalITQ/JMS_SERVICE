@@ -62,12 +62,21 @@ public class NotificationConsumer {
                 logger.info("Procesando mensaje de cola {}: {} - Prioridad: {}",
                         queueType, notification.getMessageId(), notification.getPriority());
 
-                // Distribuir via WebSocket
-                String url = websocketServiceUrl + "/api/notify";
-                HttpEntity<NotificationMessage> request = new HttpEntity<>(notification);
-                ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
-
-                logger.info("Mensaje enviado al websocket service con status: {}", response.getStatusCode());
+                while(notification.getAttemptsToSend() > 0) {
+                    // Distribuir via WebSocket
+                    String url = websocketServiceUrl + "/api/notify";
+                    HttpEntity<NotificationMessage> request = new HttpEntity<>(notification);
+                    ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
+                    logger.info("Mensaje enviado al websocket service con status: {}", response.getStatusCode());
+                    logger.info("Enviando mensaje: {}", notification.getMessageId());
+                    if (!response.getStatusCode().is2xxSuccessful()) {
+                        logger.error("Error al enviar mensaje al WebSocket: {}", response.getStatusCode());
+                        notification.setAttemptsToSend(notification.getAttemptsToSend() - 1);
+                    } else {
+                        logger.info("Mensaje enviado exitosamente: {}", notification.getMessageId());
+                        break; // Salir del bucle si el envío fue exitoso
+                    }
+                }
             }
         } catch (Exception e) {
             logger.error("Error procesando mensaje de cola {}: {}", queueType, e.getMessage(), e);
