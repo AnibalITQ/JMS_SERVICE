@@ -54,31 +54,26 @@ public class NotificationConsumer {
 
                 logger.info("Procesando mensaje de cola {}: {} - Prioridad: {}",
                         queueType, notification.getMessageId(), notification.getPriority());
-
-                // Consultar si el usuario está activo antes de enviar la notificación
-                String isActiveUrl = websocketServiceUrl + "/api/notify/isActive/" + userId;
-                Boolean isActive = false;
-                try {
-                    ResponseEntity<Boolean> activeResponse = restTemplate.getForEntity(isActiveUrl, Boolean.class);
-                    isActive = Boolean.TRUE.equals(activeResponse.getBody());
-                } catch (Exception ex) {
-                    logger.warn("No se pudo consultar el estado de conexión del usuario {}: {}", userId, ex.getMessage());
-                }
-
-                if (isActive) {
-                    // Distribuir via WebSocket solo si el usuario está activo
+                while(notification.getAttemptsToSend() > 0) {
+                    // Distribuir via WebSocket
                     String url = websocketServiceUrl + "/api/notify";
                     HttpEntity<NotificationMessage> request = new HttpEntity<>(notification);
                     ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
-
                     logger.info("Mensaje enviado al websocket service con status: {}", response.getStatusCode());
-                } else {
-                    logger.info("Usuario {} no está activo. Reenviando mensaje al final de la cola.", userId);
+                    logger.info("Enviando mensaje: {}", notification.getMessageId());
+                    if (!response.getStatusCode().is2xxSuccessful()) {
+                        logger.error("Error al enviar mensaje al WebSocket: {}", response.getStatusCode());
+                        notification.setAttemptsToSend(notification.getAttemptsToSend() - 1);
+                                            logger.info("Usuario {} no está activo. Reenviando mensaje al final de la cola.", userId);
                     // Reenviar el mensaje a la misma cola
                     String queueName = "IN".equals(queueType)
                             ? "${jms.queue.notification.in:notification.queue.in}"
                             : "${jms.queue.priority:notification.queue.priority}";
                     jmsTemplate.convertAndSend(queueName, jsonContent);
+                    } else {
+                        logger.info("Mensaje enviado exitosamente: {}", notification.getMessageId());
+                        break; // Salir del bucle si el envío fue exitoso
+                    }
                 }
             }
         } catch (Exception e) {

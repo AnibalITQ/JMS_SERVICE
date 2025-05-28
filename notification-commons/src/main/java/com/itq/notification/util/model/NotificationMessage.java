@@ -22,11 +22,13 @@ public class NotificationMessage {
     private LocalDateTime timestamp;
     private int priority;
     private boolean anonymous;
+    private int attemptsToSend;
     
     // Constructor
     public NotificationMessage() {
         this.messageId = UUID.randomUUID().toString();
         this.timestamp = LocalDateTime.now();
+        this.attemptsToSend = 3;
     }
     
     // Método para calcular prioridad final
@@ -51,6 +53,8 @@ public class NotificationMessage {
     
     public MessageType getMessageType() { return messageType; }
     public void setMessageType(MessageType messageType) { this.messageType = messageType; }
+    public int getAttemptsToSend() { return attemptsToSend; }
+    public void setAttemptsToSend(int attemptsToSend) { this.attemptsToSend = attemptsToSend; }
     
     public ReportCategory getCategory() { return category; }
     public void setCategory(ReportCategory category) { 
