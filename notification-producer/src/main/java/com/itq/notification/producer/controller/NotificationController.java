@@ -33,14 +33,9 @@ public class NotificationController {
             NotificationMessage userMessage = createUserMessage(request);
             notificationProducer.sendNotification(userMessage, "notification.queue.in");
             
-            // Crear mensaje para el guardia
-            NotificationMessage guardMessage = createGuardMessage(request);
-            notificationProducer.sendNotification( guardMessage, "guard.notification");
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("userMessageId", userMessage.getMessageId());
-            response.put("guardMessageId", guardMessage.getMessageId());
             response.put("message", "Reporte enviado exitosamente");
             
             return ResponseEntity.ok(response);
@@ -62,7 +57,7 @@ public class NotificationController {
             message.setContent(request.getMessage());
             message.setCategory(ReportCategory.GENERAL);
             message.setPriority(request.getPriority() != null ? request.getPriority() : 1);
-            
+            //message.setIntProperty("intProperty", request.getAttemptsToSend());
             notificationProducer.sendNotification(message, "system.notification");
             
             return ResponseEntity.ok(Map.of("success", true, "messageId", message.getMessageId()));
@@ -86,29 +81,6 @@ public class NotificationController {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("vehiclePlate", request.getVehiclePlate());
         metadata.put("location", request.getLocation());
-        message.setMetadata(metadata);
-        
-        return message;
-    }
-    
-    private NotificationMessage createGuardMessage(ReportRequest request) {
-        NotificationMessage message = new NotificationMessage();
-        message.setMessageType(MessageType.REPORT_TO_GUARD);
-        message.setParkingLotId(request.getParkingLotId());
-        message.setCategory(request.getCategory());
-        message.setContent(String.format("Reporte: %s - Vehículo: %s - Ubicación: %s", 
-                                        request.getMessage(), 
-                                        request.getVehiclePlate(), 
-                                        request.getLocation()));
-        message.setAnonymous(false); // Los guardias ven detalles completos
-        
-        // Metadata para guardias
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("reporterUserId", request.getReporterUserId());
-        metadata.put("reportedUserId", request.getReportedUserId());
-        metadata.put("vehiclePlate", request.getVehiclePlate());
-        metadata.put("location", request.getLocation());
-        metadata.put("reportedUserRole", request.getReportedUserRole().name());
         message.setMetadata(metadata);
         
         return message;

@@ -21,7 +21,13 @@ public class WebSocketController {
 
     @PostMapping
     public ResponseEntity<Void> sendNotification(@RequestBody NotificationMessage message) {
-        webSocketNotificationService.sendToUser(message.getToUserId(), message);
-        return ResponseEntity.ok().build();
+        String userId = message.getToUserId();
+        if (webSocketNotificationService.isUserActive(userId)) {
+            webSocketNotificationService.sendToUser(userId, message);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
 }
